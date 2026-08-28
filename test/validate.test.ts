@@ -84,6 +84,30 @@ describe("validateKDrawDocumentV1", () => {
     );
   });
 
+  it("validates a discriminated per-layout page setup", () => {
+    const document = fixture();
+    document.layouts.push({
+      id: "layout-1",
+      name: "Layout 1",
+      kind: "paper",
+      paper: { widthMm: 210, heightMm: 297, marginsMm: { top: 10, right: 10, bottom: 10, left: 10 } },
+      pageSetup: {
+        mediaName: "ISO_A4",
+        orientation: "portrait",
+        plotArea: { kind: "window", window: { x: 10, y: 20, width: 180, height: 250 } },
+        plotScale: { mode: "custom", paperUnits: 1, drawingUnits: 2 },
+        centerPlot: false,
+        plotOriginMm: { x: 10, y: 10 },
+      },
+      viewports: [],
+    });
+    expect(validateKDrawDocumentV1(document)).toEqual({ valid: true, issues: [] });
+    if (document.layouts[1]?.pageSetup?.plotScale.mode === "custom") document.layouts[1].pageSetup.plotScale.drawingUnits = 0;
+    expect(validateKDrawDocumentV1(document).issues).toContainEqual(
+      expect.objectContaining({ path: "$.layouts[1].pageSetup.plotScale", code: "INVALID_VALUE" }),
+    );
+  });
+
   it("rejects duplicate layout names case-insensitively and duplicate viewport ids", () => {
     const document = fixture();
     document.layouts[0]!.viewports.push({

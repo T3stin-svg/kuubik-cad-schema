@@ -32,7 +32,7 @@
     "textStyles": { "type": "array", "items": { "type": "object" } },
     "dimensionStyles": { "type": "array", "items": { "type": "object" } },
     "blocks": { "type": "array", "items": { "$ref": "#/$defs/block" } },
-    "layouts": { "type": "array", "items": { "type": "object" } },
+    "layouts": { "type": "array", "items": { "$ref": "#/$defs/layout" } },
     "attachments": { "type": "array", "items": { "type": "object" } },
     "metadata": { "type": "object" }
   },
@@ -45,6 +45,64 @@
       "properties": {
         "x": { "$ref": "#/$defs/finiteNumber" },
         "y": { "$ref": "#/$defs/finiteNumber" }
+      }
+    },
+    "paperRect": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["x", "y", "width", "height"],
+      "properties": {
+        "x": { "$ref": "#/$defs/finiteNumber" },
+        "y": { "$ref": "#/$defs/finiteNumber" },
+        "width": { "type": "number", "exclusiveMinimum": 0 },
+        "height": { "type": "number", "exclusiveMinimum": 0 }
+      }
+    },
+    "plotArea": {
+      "oneOf": [
+        { "type": "object", "required": ["kind"], "properties": { "kind": { "const": "layout" } } },
+        { "type": "object", "required": ["kind"], "properties": { "kind": { "const": "extents" } } },
+        { "type": "object", "required": ["kind"], "properties": { "kind": { "const": "display" } } },
+        { "type": "object", "required": ["kind", "window"], "properties": { "kind": { "const": "window" }, "window": { "$ref": "#/$defs/paperRect" } } }
+      ]
+    },
+    "plotScale": {
+      "oneOf": [
+        { "type": "object", "required": ["mode"], "properties": { "mode": { "const": "fit" } } },
+        {
+          "type": "object",
+          "required": ["mode", "paperUnits", "drawingUnits"],
+          "properties": {
+            "mode": { "const": "custom" },
+            "paperUnits": { "type": "number", "exclusiveMinimum": 0 },
+            "drawingUnits": { "type": "number", "exclusiveMinimum": 0 }
+          }
+        }
+      ]
+    },
+    "pageSetup": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mediaName", "orientation", "plotArea", "plotScale", "centerPlot", "plotOriginMm"],
+      "properties": {
+        "mediaName": { "type": "string", "minLength": 1 },
+        "orientation": { "enum": ["portrait", "landscape"] },
+        "plotArea": { "$ref": "#/$defs/plotArea" },
+        "plotScale": { "$ref": "#/$defs/plotScale" },
+        "centerPlot": { "type": "boolean" },
+        "plotOriginMm": { "$ref": "#/$defs/point" }
+      }
+    },
+    "layout": {
+      "type": "object",
+      "required": ["id", "name", "kind", "viewports"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "name": { "type": "string", "minLength": 1 },
+        "kind": { "enum": ["model", "paper"] },
+        "pageSetup": { "$ref": "#/$defs/pageSetup" },
+        "viewports": { "type": "array", "items": { "type": "object" } },
+        "entities": { "type": "array", "items": { "$ref": "#/$defs/entity" } }
       }
     },
     "units": {

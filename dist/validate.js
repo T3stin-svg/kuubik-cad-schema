@@ -187,6 +187,44 @@ export function validateKDrawDocumentV1(candidate) {
                 viewportIds.add(viewport.id);
             });
         }
+        if (layout.pageSetup !== undefined) {
+            const setupPath = `${path}.pageSetup`;
+            if (!isRecord(layout.pageSetup)) {
+                issues.push({ path: setupPath, code: "INVALID_VALUE", message: "Page setup must be an object." });
+            }
+            else {
+                const setup = layout.pageSetup;
+                if (typeof setup.mediaName !== "string" || setup.mediaName.trim().length === 0) {
+                    issues.push({ path: `${setupPath}.mediaName`, code: "INVALID_VALUE", message: "Page setup mediaName is required." });
+                }
+                if (setup.orientation !== "portrait" && setup.orientation !== "landscape") {
+                    issues.push({ path: `${setupPath}.orientation`, code: "INVALID_VALUE", message: "Page setup orientation must be portrait or landscape." });
+                }
+                if (!isRecord(setup.plotArea) || !["layout", "extents", "display", "window"].includes(String(setup.plotArea.kind))) {
+                    issues.push({ path: `${setupPath}.plotArea`, code: "INVALID_VALUE", message: "Page setup plotArea is invalid." });
+                }
+                else if (setup.plotArea.kind === "window") {
+                    const window = setup.plotArea.window;
+                    if (!isRecord(window) || typeof window.x !== "number" || typeof window.y !== "number" ||
+                        typeof window.width !== "number" || typeof window.height !== "number" || window.width <= 0 || window.height <= 0) {
+                        issues.push({ path: `${setupPath}.plotArea.window`, code: "INVALID_VALUE", message: "Window plot area must have positive width and height." });
+                    }
+                }
+                if (!isRecord(setup.plotScale) || !["fit", "custom"].includes(String(setup.plotScale.mode))) {
+                    issues.push({ path: `${setupPath}.plotScale`, code: "INVALID_VALUE", message: "Page setup plotScale is invalid." });
+                }
+                else if (setup.plotScale.mode === "custom" && (typeof setup.plotScale.paperUnits !== "number" || setup.plotScale.paperUnits <= 0 ||
+                    typeof setup.plotScale.drawingUnits !== "number" || setup.plotScale.drawingUnits <= 0)) {
+                    issues.push({ path: `${setupPath}.plotScale`, code: "INVALID_VALUE", message: "Custom plot scale units must be positive." });
+                }
+                if (typeof setup.centerPlot !== "boolean") {
+                    issues.push({ path: `${setupPath}.centerPlot`, code: "INVALID_VALUE", message: "Page setup centerPlot must be boolean." });
+                }
+                if (!isRecord(setup.plotOriginMm) || typeof setup.plotOriginMm.x !== "number" || typeof setup.plotOriginMm.y !== "number") {
+                    issues.push({ path: `${setupPath}.plotOriginMm`, code: "INVALID_VALUE", message: "Page setup plotOriginMm must be a point." });
+                }
+            }
+        }
         if (layout.entities !== undefined && !Array.isArray(layout.entities)) {
             issues.push({ path: `${path}.entities`, code: "INVALID_VALUE", message: "Layout entities must be an array." });
         }

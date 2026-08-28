@@ -167,6 +167,41 @@ export interface CadViewport {
         frozen?: boolean;
     }>;
 }
+export interface CadPaperRect {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+}
+export type CadPlotArea = {
+    kind: "layout";
+} | {
+    kind: "extents";
+} | {
+    kind: "display";
+} | {
+    kind: "window";
+    window: CadPaperRect;
+};
+export type CadPlotScale = {
+    mode: "fit";
+} | {
+    mode: "custom";
+    paperUnits: number;
+    drawingUnits: number;
+};
+/**
+ * Vendor-neutral, per-layout plot contract. Device-specific PC3/CTB/STB data
+ * deliberately lives outside v1; mediaName identifies the selected sheet.
+ */
+export interface CadPageSetup {
+    mediaName: string;
+    orientation: "portrait" | "landscape";
+    plotArea: CadPlotArea;
+    plotScale: CadPlotScale;
+    centerPlot: boolean;
+    plotOriginMm: CadPoint2;
+}
 export interface CadLayout {
     id: string;
     name: string;
@@ -181,6 +216,7 @@ export interface CadLayout {
             left: number;
         };
     };
+    pageSetup?: CadPageSetup;
     viewports: CadViewport[];
     /** Paper-space entities owned by this layout. Omitted by older v1 documents. */
     entities?: CadEntity[];
