@@ -111,7 +111,8 @@
         "plotScale": { "$ref": "#/$defs/plotScale" },
         "centerPlot": { "type": "boolean" },
         "plotOriginMm": { "$ref": "#/$defs/point" },
-        "plotStyle": { "$ref": "#/$defs/plotStyle" }
+        "plotStyle": { "$ref": "#/$defs/plotStyle" },
+        "displayPlotStyles": { "type": "boolean" }
       }
     },
     "layout": {

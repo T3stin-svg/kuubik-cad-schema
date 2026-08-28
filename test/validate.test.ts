@@ -1,9 +1,14 @@
 import { describe, expect, it } from "vitest";
+import { readFileSync } from "node:fs";
 import {
   assertKDrawDocumentV1,
   type KDrawDocumentV1,
   validateKDrawDocumentV1,
 } from "../src/index.js";
+
+const publicJsonSchema = JSON.parse(readFileSync(new URL("../schema/kdraw-v1.schema.json", import.meta.url), "utf8")) as {
+  $defs: { pageSetup: { properties: Record<string, unknown> } };
+};
 
 function fixture(): KDrawDocumentV1 {
   return {
@@ -139,6 +144,10 @@ describe("validateKDrawDocumentV1", () => {
     expect(validateKDrawDocumentV1(document).issues).toContainEqual(
       expect.objectContaining({ path: "$.layouts[1].pageSetup.displayPlotStyles", code: "INVALID_VALUE" }),
     );
+  });
+
+  it("keeps the public JSON Schema aligned with persisted plot-preview state", () => {
+    expect(publicJsonSchema.$defs.pageSetup.properties.displayPlotStyles).toEqual({ type: "boolean" });
   });
 
   it("locks appearance transparency to AutoCAD-style percent semantics", () => {
