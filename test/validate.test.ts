@@ -98,6 +98,7 @@ describe("validateKDrawDocumentV1", () => {
         plotScale: { mode: "custom", paperUnits: 1, drawingUnits: 2 },
         centerPlot: false,
         plotOriginMm: { x: 10, y: 10 },
+        plotStyle: { profile: "grayscale", plotLineweights: true, plotTransparency: false },
       },
       viewports: [],
     });
@@ -105,6 +106,32 @@ describe("validateKDrawDocumentV1", () => {
     if (document.layouts[1]?.pageSetup?.plotScale.mode === "custom") document.layouts[1].pageSetup.plotScale.drawingUnits = 0;
     expect(validateKDrawDocumentV1(document).issues).toContainEqual(
       expect.objectContaining({ path: "$.layouts[1].pageSetup.plotScale", code: "INVALID_VALUE" }),
+    );
+  });
+
+  it("rejects an invalid optional vendor-neutral plot style", () => {
+    const document = fixture();
+    document.layouts.push({
+      id: "layout-plot-style",
+      name: "Plot style",
+      kind: "paper",
+      paper: { widthMm: 297, heightMm: 210, marginsMm: { top: 10, right: 10, bottom: 10, left: 10 } },
+      pageSetup: {
+        mediaName: "ISO_A4",
+        orientation: "landscape",
+        plotArea: { kind: "layout" },
+        plotScale: { mode: "custom", paperUnits: 1, drawingUnits: 1 },
+        centerPlot: false,
+        plotOriginMm: { x: 0, y: 0 },
+        plotStyle: { profile: "color", plotLineweights: true, plotTransparency: true },
+      },
+      viewports: [],
+    });
+    expect(validateKDrawDocumentV1(document)).toEqual({ valid: true, issues: [] });
+    const setup = document.layouts[1]!.pageSetup!;
+    setup.plotStyle = { ...setup.plotStyle!, profile: "native-ctb" as "color" };
+    expect(validateKDrawDocumentV1(document).issues).toContainEqual(
+      expect.objectContaining({ path: "$.layouts[1].pageSetup.plotStyle.profile", code: "INVALID_VALUE" }),
     );
   });
 

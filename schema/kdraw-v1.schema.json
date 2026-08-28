@@ -80,6 +80,16 @@
         }
       ]
     },
+    "plotStyle": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["profile", "plotLineweights", "plotTransparency"],
+      "properties": {
+        "profile": { "enum": ["color", "monochrome", "grayscale"] },
+        "plotLineweights": { "type": "boolean" },
+        "plotTransparency": { "type": "boolean" }
+      }
+    },
     "pageSetup": {
       "type": "object",
       "additionalProperties": false,
@@ -90,7 +100,8 @@
         "plotArea": { "$ref": "#/$defs/plotArea" },
         "plotScale": { "$ref": "#/$defs/plotScale" },
         "centerPlot": { "type": "boolean" },
-        "plotOriginMm": { "$ref": "#/$defs/point" }
+        "plotOriginMm": { "$ref": "#/$defs/point" },
+        "plotStyle": { "$ref": "#/$defs/plotStyle" }
       }
     },
     "layout": {

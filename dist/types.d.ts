@@ -190,6 +190,13 @@ export type CadPlotScale = {
     paperUnits: number;
     drawingUnits: number;
 };
+/** Vendor-neutral plot-colour conversion; native CTB/STB files remain external. */
+export type CadPlotProfile = "color" | "monochrome" | "grayscale";
+export interface CadPlotStyle {
+    profile: CadPlotProfile;
+    plotLineweights: boolean;
+    plotTransparency: boolean;
+}
 /**
  * Vendor-neutral, per-layout plot contract. Device-specific PC3/CTB/STB data
  * deliberately lives outside v1; mediaName identifies the selected sheet.
@@ -201,6 +208,8 @@ export interface CadPageSetup {
     plotScale: CadPlotScale;
     centerPlot: boolean;
     plotOriginMm: CadPoint2;
+    /** Optional for backwards-compatible v1 documents; the core supplies defaults. */
+    plotStyle?: CadPlotStyle;
 }
 export interface CadLayout {
     id: string;

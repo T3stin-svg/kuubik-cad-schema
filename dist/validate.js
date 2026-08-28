@@ -223,6 +223,22 @@ export function validateKDrawDocumentV1(candidate) {
                 if (!isRecord(setup.plotOriginMm) || typeof setup.plotOriginMm.x !== "number" || typeof setup.plotOriginMm.y !== "number") {
                     issues.push({ path: `${setupPath}.plotOriginMm`, code: "INVALID_VALUE", message: "Page setup plotOriginMm must be a point." });
                 }
+                if (setup.plotStyle !== undefined) {
+                    if (!isRecord(setup.plotStyle)) {
+                        issues.push({ path: `${setupPath}.plotStyle`, code: "INVALID_VALUE", message: "Page setup plotStyle must be an object." });
+                    }
+                    else {
+                        if (!["color", "monochrome", "grayscale"].includes(String(setup.plotStyle.profile))) {
+                            issues.push({ path: `${setupPath}.plotStyle.profile`, code: "INVALID_VALUE", message: "Plot profile must be color, monochrome or grayscale." });
+                        }
+                        if (typeof setup.plotStyle.plotLineweights !== "boolean") {
+                            issues.push({ path: `${setupPath}.plotStyle.plotLineweights`, code: "INVALID_VALUE", message: "plotLineweights must be boolean." });
+                        }
+                        if (typeof setup.plotStyle.plotTransparency !== "boolean") {
+                            issues.push({ path: `${setupPath}.plotStyle.plotTransparency`, code: "INVALID_VALUE", message: "plotTransparency must be boolean." });
+                        }
+                    }
+                }
             }
         }
         if (layout.entities !== undefined && !Array.isArray(layout.entities)) {
