@@ -264,6 +264,9 @@ export function validateKDrawDocumentV1(candidate) {
                         }
                     }
                 }
+                if (setup.displayPlotStyles !== undefined && typeof setup.displayPlotStyles !== "boolean") {
+                    issues.push({ path: `${setupPath}.displayPlotStyles`, code: "INVALID_VALUE", message: "displayPlotStyles must be boolean." });
+                }
             }
         }
         if (layout.entities !== undefined && !Array.isArray(layout.entities)) {

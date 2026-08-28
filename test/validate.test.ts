@@ -124,6 +124,7 @@ describe("validateKDrawDocumentV1", () => {
         centerPlot: false,
         plotOriginMm: { x: 0, y: 0 },
         plotStyle: { profile: "color", plotLineweights: true, plotTransparency: true },
+        displayPlotStyles: true,
       },
       viewports: [],
     });
@@ -132,6 +133,11 @@ describe("validateKDrawDocumentV1", () => {
     setup.plotStyle = { ...setup.plotStyle!, profile: "native-ctb" as "color" };
     expect(validateKDrawDocumentV1(document).issues).toContainEqual(
       expect.objectContaining({ path: "$.layouts[1].pageSetup.plotStyle.profile", code: "INVALID_VALUE" }),
+    );
+    setup.plotStyle = { profile: "color", plotLineweights: true, plotTransparency: true };
+    setup.displayPlotStyles = "yes" as unknown as boolean;
+    expect(validateKDrawDocumentV1(document).issues).toContainEqual(
+      expect.objectContaining({ path: "$.layouts[1].pageSetup.displayPlotStyles", code: "INVALID_VALUE" }),
     );
   });
 

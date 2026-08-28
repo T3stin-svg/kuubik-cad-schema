@@ -239,6 +239,8 @@ export interface CadPageSetup {
   plotOriginMm: CadPoint2;
   /** Optional for backwards-compatible v1 documents; the core supplies defaults. */
   plotStyle?: CadPlotStyle;
+  /** AutoCAD-compatible on-screen plot-style preview; plotting always uses plotStyle. */
+  displayPlotStyles?: boolean;
 }
 
 export interface CadLayout {
