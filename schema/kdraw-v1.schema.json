@@ -1,0 +1,135 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://kuubikprojekt.ee/schemas/kdraw-v1.schema.json",
+  "title": "KDrawDocumentV1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "documentId",
+    "revision",
+    "units",
+    "currentLayerId",
+    "entities",
+    "layers",
+    "linetypes",
+    "textStyles",
+    "dimensionStyles",
+    "blocks",
+    "layouts",
+    "attachments",
+    "metadata"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "documentId": { "type": "string", "minLength": 1 },
+    "revision": { "type": "integer", "minimum": 0 },
+    "units": { "$ref": "#/$defs/units" },
+    "currentLayerId": { "type": "string", "minLength": 1 },
+    "entities": { "type": "array", "items": { "$ref": "#/$defs/entity" } },
+    "layers": { "type": "array", "items": { "$ref": "#/$defs/layer" }, "minItems": 1 },
+    "linetypes": { "type": "array", "items": { "type": "object" } },
+    "textStyles": { "type": "array", "items": { "type": "object" } },
+    "dimensionStyles": { "type": "array", "items": { "type": "object" } },
+    "blocks": { "type": "array", "items": { "$ref": "#/$defs/block" } },
+    "layouts": { "type": "array", "items": { "type": "object" } },
+    "attachments": { "type": "array", "items": { "type": "object" } },
+    "metadata": { "type": "object" }
+  },
+  "$defs": {
+    "finiteNumber": { "type": "number" },
+    "point": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["x", "y"],
+      "properties": {
+        "x": { "$ref": "#/$defs/finiteNumber" },
+        "y": { "$ref": "#/$defs/finiteNumber" }
+      }
+    },
+    "units": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["linear", "displayPrecision", "angularPrecision"],
+      "properties": {
+        "linear": { "enum": ["unitless", "mm", "cm", "m", "in", "ft"] },
+        "displayPrecision": { "type": "integer", "minimum": 0, "maximum": 15 },
+        "angularPrecision": { "type": "integer", "minimum": 0, "maximum": 15 }
+      }
+    },
+    "entityBase": {
+      "type": "object",
+      "required": ["kind", "handle", "layerId"],
+      "properties": {
+        "kind": { "type": "string" },
+        "handle": { "type": "string", "minLength": 1 },
+        "layerId": { "type": "string", "minLength": 1 },
+        "appearance": { "type": "object" },
+        "extensionData": { "type": "object" }
+      }
+    },
+    "entity": {
+      "allOf": [
+        { "$ref": "#/$defs/entityBase" },
+        {
+          "oneOf": [
+            {
+              "properties": {
+                "kind": { "const": "line" },
+                "start": { "$ref": "#/$defs/point" },
+                "end": { "$ref": "#/$defs/point" }
+              },
+              "required": ["start", "end"]
+            },
+            {
+              "properties": {
+                "kind": { "const": "circle" },
+                "center": { "$ref": "#/$defs/point" },
+                "radius": { "type": "number", "exclusiveMinimum": 0 }
+              },
+              "required": ["center", "radius"]
+            },
+            {
+              "properties": {
+                "kind": {
+                  "enum": ["polyline", "arc", "ellipse", "spline", "text", "mtext", "leader", "dimension", "hatch", "blockRef"]
+                }
+              }
+            },
+            {
+              "properties": {
+                "kind": { "const": "proxy" },
+                "originalType": { "type": "string", "minLength": 1 },
+                "raw": {}
+              },
+              "required": ["originalType", "raw"]
+            }
+          ]
+        }
+      ]
+    },
+    "layer": {
+      "type": "object",
+      "required": ["id", "name", "visible", "frozen", "locked", "plottable"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "name": { "type": "string" },
+        "visible": { "type": "boolean" },
+        "frozen": { "type": "boolean" },
+        "locked": { "type": "boolean" },
+        "plottable": { "type": "boolean" },
+        "appearance": { "type": "object" }
+      }
+    },
+    "block": {
+      "type": "object",
+      "required": ["id", "name", "basePoint", "entities"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "name": { "type": "string" },
+        "basePoint": { "$ref": "#/$defs/point" },
+        "entities": { "type": "array", "items": { "$ref": "#/$defs/entity" } }
+      }
+    }
+  }
+}

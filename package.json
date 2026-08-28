@@ -1,0 +1,40 @@
+{
+  "name": "@kuubik/cad-schema",
+  "version": "0.1.0",
+  "description": "Vendor-neutral public schema for Kuubik 2D CAD documents and parity evidence.",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./kdraw-v1.schema.json": "./schema/kdraw-v1.schema.json"
+  },
+  "files": [
+    "dist",
+    "schema",
+    "LICENSE",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "check": "npm run typecheck && npm run test && npm run build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/T3stin-svg/kuubik-cad-schema.git"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "devDependencies": {
+    "typescript": "^6.0.0",
+    "vitest": "^3.2.4"
+  }
+}
+
