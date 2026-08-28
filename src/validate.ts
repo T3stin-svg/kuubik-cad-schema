@@ -88,6 +88,9 @@ function validateAppearance(value: unknown, path: string, issues: ValidationIssu
   if (value.color !== undefined && (typeof value.color !== "string" || !/^#[0-9a-f]{3}(?:[0-9a-f]{3})?$/iu.test(value.color))) {
     issues.push({ path: `${path}.color`, code: "INVALID_VALUE", message: "Appearance color must be #RGB or #RRGGBB." });
   }
+  if (value.colorMethod !== undefined && value.colorMethod !== "aci" && value.colorMethod !== "trueColor") {
+    issues.push({ path: `${path}.colorMethod`, code: "INVALID_VALUE", message: "Appearance colorMethod must be aci or trueColor." });
+  }
   if (value.linetypeId !== undefined && (typeof value.linetypeId !== "string" || value.linetypeId.length === 0)) {
     issues.push({ path: `${path}.linetypeId`, code: "INVALID_VALUE", message: "Appearance linetypeId must be a non-empty string." });
   }

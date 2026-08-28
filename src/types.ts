@@ -14,6 +14,8 @@ export interface CadPoint2 {
 
 export interface CadAppearance {
   color?: string;
+  /** ACI colours participate in CTB mapping; TrueColor values bypass stock CTB colour remapping. */
+  colorMethod?: "aci" | "trueColor";
   linetypeId?: string;
   lineweightMm?: number;
   transparency?: number;
