@@ -182,6 +182,8 @@ export interface CadLayout {
         };
     };
     viewports: CadViewport[];
+    /** Paper-space entities owned by this layout. Omitted by older v1 documents. */
+    entities?: CadEntity[];
 }
 export interface CadAttachmentRef {
     id: string;

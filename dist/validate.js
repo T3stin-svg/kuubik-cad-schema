@@ -118,6 +118,7 @@ export function validateKDrawDocumentV1(candidate) {
     const layers = Array.isArray(candidate.layers) ? candidate.layers : [];
     const blocks = Array.isArray(candidate.blocks) ? candidate.blocks : [];
     const entities = Array.isArray(candidate.entities) ? candidate.entities : [];
+    const layouts = Array.isArray(candidate.layouts) ? candidate.layouts : [];
     if (!Array.isArray(candidate.layers)) {
         issues.push({ path: "$.layers", code: "INVALID_VALUE", message: "Layers must be an array." });
     }
@@ -126,6 +127,9 @@ export function validateKDrawDocumentV1(candidate) {
     }
     if (!Array.isArray(candidate.entities)) {
         issues.push({ path: "$.entities", code: "INVALID_VALUE", message: "Entities must be an array." });
+    }
+    if (!Array.isArray(candidate.layouts)) {
+        issues.push({ path: "$.layouts", code: "INVALID_VALUE", message: "Layouts must be an array." });
     }
     const layerIds = addDuplicateIssues(layers.flatMap((layer) => (isRecord(layer) && typeof layer.id === "string" ? [layer.id] : [])), "$.layers", issues);
     const blockIds = addDuplicateIssues(blocks.flatMap((block) => (isRecord(block) && typeof block.id === "string" ? [block.id] : [])), "$.blocks", issues);
@@ -143,6 +147,56 @@ export function validateKDrawDocumentV1(candidate) {
             return;
         block.entities.forEach((entity, entityIndex) => validateEntity(entity, `$.blocks[${blockIndex}].entities[${entityIndex}]`, layerIds, blockIds, handles, issues));
     });
+    addDuplicateIssues(layouts.flatMap((layout) => (isRecord(layout) && typeof layout.id === "string" ? [layout.id] : [])), "$.layouts", issues);
+    const layoutNames = new Set();
+    const viewportIds = new Set();
+    layouts.forEach((layout, layoutIndex) => {
+        const path = `$.layouts[${layoutIndex}]`;
+        if (!isRecord(layout)) {
+            issues.push({ path, code: "INVALID_VALUE", message: "Layout must be an object." });
+            return;
+        }
+        if (typeof layout.id !== "string" || layout.id.length === 0) {
+            issues.push({ path: `${path}.id`, code: "INVALID_VALUE", message: "Layout id is required." });
+        }
+        if (typeof layout.name !== "string" || layout.name.length === 0) {
+            issues.push({ path: `${path}.name`, code: "INVALID_VALUE", message: "Layout name is required." });
+        }
+        else {
+            const normalizedName = layout.name.toLocaleLowerCase("en-US");
+            if (layoutNames.has(normalizedName)) {
+                issues.push({ path: `${path}.name`, code: "DUPLICATE_ID", message: `Duplicate layout name: ${layout.name}` });
+            }
+            layoutNames.add(normalizedName);
+        }
+        if (layout.kind !== "model" && layout.kind !== "paper") {
+            issues.push({ path: `${path}.kind`, code: "INVALID_VALUE", message: "Layout kind must be model or paper." });
+        }
+        if (!Array.isArray(layout.viewports)) {
+            issues.push({ path: `${path}.viewports`, code: "INVALID_VALUE", message: "Layout viewports must be an array." });
+        }
+        else {
+            layout.viewports.forEach((viewport, viewportIndex) => {
+                if (!isRecord(viewport) || typeof viewport.id !== "string" || viewport.id.length === 0) {
+                    issues.push({ path: `${path}.viewports[${viewportIndex}].id`, code: "INVALID_VALUE", message: "Viewport id is required." });
+                    return;
+                }
+                if (viewportIds.has(viewport.id)) {
+                    issues.push({ path: `${path}.viewports[${viewportIndex}].id`, code: "DUPLICATE_ID", message: `Duplicate viewport id: ${viewport.id}` });
+                }
+                viewportIds.add(viewport.id);
+            });
+        }
+        if (layout.entities !== undefined && !Array.isArray(layout.entities)) {
+            issues.push({ path: `${path}.entities`, code: "INVALID_VALUE", message: "Layout entities must be an array." });
+        }
+        else if (Array.isArray(layout.entities)) {
+            layout.entities.forEach((entity, entityIndex) => validateEntity(entity, `${path}.entities[${entityIndex}]`, layerIds, blockIds, handles, issues));
+        }
+    });
+    if (layouts.filter((layout) => isRecord(layout) && layout.kind === "model").length !== 1) {
+        issues.push({ path: "$.layouts", code: "INVALID_VALUE", message: "Document must contain exactly one model layout." });
+    }
     scanFiniteNumbers(candidate.units, "$.units", issues);
     scanFiniteNumbers(candidate.layouts, "$.layouts", issues);
     scanFiniteNumbers(candidate.linetypes, "$.linetypes", issues);

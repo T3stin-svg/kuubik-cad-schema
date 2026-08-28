@@ -66,6 +66,42 @@ describe("validateKDrawDocumentV1", () => {
     expect(result.issues.some((issue) => issue.code === "DUPLICATE_ID")).toBe(true);
   });
 
+  it("validates paper-space entities and requires their handles to be document-unique", () => {
+    const document = fixture();
+    document.layouts.push({
+      id: "layout-1",
+      name: "Layout 1",
+      kind: "paper",
+      viewports: [],
+      entities: [
+        { kind: "circle", handle: "20", layerId: "0", center: { x: 50, y: 50 }, radius: 25 },
+      ],
+    });
+    expect(validateKDrawDocumentV1(document)).toEqual({ valid: true, issues: [] });
+    document.layouts[1]!.entities![0]!.handle = "10";
+    expect(validateKDrawDocumentV1(document).issues).toContainEqual(
+      expect.objectContaining({ path: "$.layouts[1].entities[0].handle", code: "DUPLICATE_ID" }),
+    );
+  });
+
+  it("rejects duplicate layout names case-insensitively and duplicate viewport ids", () => {
+    const document = fixture();
+    document.layouts[0]!.viewports.push({
+      id: "viewport-1", center: { x: 0, y: 0 }, width: 10, height: 10,
+      viewCenter: { x: 0, y: 0 }, viewHeight: 10, twistAngleRad: 0, locked: false,
+    });
+    document.layouts.push({
+      id: "layout-1", name: "model", kind: "paper", entities: [],
+      viewports: [{
+        id: "viewport-1", center: { x: 0, y: 0 }, width: 10, height: 10,
+        viewCenter: { x: 0, y: 0 }, viewHeight: 10, twistAngleRad: 0, locked: false,
+      }],
+    });
+    const issues = validateKDrawDocumentV1(document).issues;
+    expect(issues).toContainEqual(expect.objectContaining({ path: "$.layouts[1].name", code: "DUPLICATE_ID" }));
+    expect(issues).toContainEqual(expect.objectContaining({ path: "$.layouts[1].viewports[0].id", code: "DUPLICATE_ID" }));
+  });
+
   it("rejects missing layer references", () => {
     const document = fixture();
     document.entities[0]!.layerId = "missing";
