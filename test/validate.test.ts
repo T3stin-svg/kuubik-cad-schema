@@ -135,6 +135,18 @@ describe("validateKDrawDocumentV1", () => {
     );
   });
 
+  it("locks appearance transparency to AutoCAD-style percent semantics", () => {
+    const document = fixture();
+    document.entities[0]!.appearance = { color: "#f00", lineweightMm: 0.7, transparency: 40 };
+    document.layers[0]!.appearance = { color: "#00ff00", lineweightMm: 0, transparency: 90 };
+    expect(validateKDrawDocumentV1(document)).toEqual({ valid: true, issues: [] });
+    document.entities[0]!.appearance = { color: "red", lineweightMm: -0.1, transparency: 91 };
+    const issues = validateKDrawDocumentV1(document).issues;
+    expect(issues).toContainEqual(expect.objectContaining({ path: "$.entities[0].appearance.color", code: "INVALID_VALUE" }));
+    expect(issues).toContainEqual(expect.objectContaining({ path: "$.entities[0].appearance.lineweightMm", code: "INVALID_VALUE" }));
+    expect(issues).toContainEqual(expect.objectContaining({ path: "$.entities[0].appearance.transparency", code: "INVALID_VALUE" }));
+  });
+
   it("rejects duplicate layout names case-insensitively and duplicate viewport ids", () => {
     const document = fixture();
     document.layouts[0]!.viewports.push({

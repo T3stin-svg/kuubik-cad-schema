@@ -38,6 +38,16 @@
   },
   "$defs": {
     "finiteNumber": { "type": "number" },
+    "appearance": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "color": { "type": "string", "pattern": "^#[0-9A-Fa-f]{3}([0-9A-Fa-f]{3})?$" },
+        "linetypeId": { "type": "string", "minLength": 1 },
+        "lineweightMm": { "type": "number", "minimum": 0 },
+        "transparency": { "type": "number", "minimum": 0, "maximum": 90 }
+      }
+    },
     "point": {
       "type": "object",
       "additionalProperties": false,
@@ -133,7 +143,7 @@
         "kind": { "type": "string" },
         "handle": { "type": "string", "minLength": 1 },
         "layerId": { "type": "string", "minLength": 1 },
-        "appearance": { "type": "object" },
+        "appearance": { "$ref": "#/$defs/appearance" },
         "extensionData": { "type": "object" }
       }
     },
@@ -187,7 +197,7 @@
         "frozen": { "type": "boolean" },
         "locked": { "type": "boolean" },
         "plottable": { "type": "boolean" },
-        "appearance": { "type": "object" }
+        "appearance": { "$ref": "#/$defs/appearance" }
       }
     },
     "block": {

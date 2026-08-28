@@ -49,6 +49,25 @@ function scanFiniteNumbers(value, path, issues, skipRaw = false) {
         scanFiniteNumbers(child, `${path}.${key}`, issues, skipRaw);
     }
 }
+function validateAppearance(value, path, issues) {
+    if (!isRecord(value)) {
+        issues.push({ path, code: "INVALID_VALUE", message: "Appearance must be an object." });
+        return;
+    }
+    if (value.color !== undefined && (typeof value.color !== "string" || !/^#[0-9a-f]{3}(?:[0-9a-f]{3})?$/iu.test(value.color))) {
+        issues.push({ path: `${path}.color`, code: "INVALID_VALUE", message: "Appearance color must be #RGB or #RRGGBB." });
+    }
+    if (value.linetypeId !== undefined && (typeof value.linetypeId !== "string" || value.linetypeId.length === 0)) {
+        issues.push({ path: `${path}.linetypeId`, code: "INVALID_VALUE", message: "Appearance linetypeId must be a non-empty string." });
+    }
+    if (value.lineweightMm !== undefined && (typeof value.lineweightMm !== "number" || !Number.isFinite(value.lineweightMm) || value.lineweightMm < 0)) {
+        issues.push({ path: `${path}.lineweightMm`, code: "INVALID_VALUE", message: "Appearance lineweightMm must be finite and non-negative." });
+    }
+    if (value.transparency !== undefined && (typeof value.transparency !== "number" || !Number.isFinite(value.transparency) ||
+        value.transparency < 0 || value.transparency > 90)) {
+        issues.push({ path: `${path}.transparency`, code: "INVALID_VALUE", message: "Appearance transparency must be a percentage from 0 to 90." });
+    }
+}
 function validateEntity(candidate, path, layerIds, blockIds, handles, issues) {
     if (!isRecord(candidate)) {
         issues.push({ path, code: "INVALID_VALUE", message: "Entity must be an object." });
@@ -81,6 +100,8 @@ function validateEntity(candidate, path, layerIds, blockIds, handles, issues) {
             message: `Unknown layer: ${String(layerId)}`,
         });
     }
+    if (candidate.appearance !== undefined)
+        validateAppearance(candidate.appearance, `${path}.appearance`, issues);
     if (kind === "blockRef") {
         const blockId = candidate.blockId;
         if (typeof blockId !== "string" || !blockIds.has(blockId)) {
@@ -132,6 +153,10 @@ export function validateKDrawDocumentV1(candidate) {
         issues.push({ path: "$.layouts", code: "INVALID_VALUE", message: "Layouts must be an array." });
     }
     const layerIds = addDuplicateIssues(layers.flatMap((layer) => (isRecord(layer) && typeof layer.id === "string" ? [layer.id] : [])), "$.layers", issues);
+    layers.forEach((layer, index) => {
+        if (isRecord(layer) && layer.appearance !== undefined)
+            validateAppearance(layer.appearance, `$.layers[${index}].appearance`, issues);
+    });
     const blockIds = addDuplicateIssues(blocks.flatMap((block) => (isRecord(block) && typeof block.id === "string" ? [block.id] : [])), "$.blocks", issues);
     if (typeof candidate.currentLayerId !== "string" || !layerIds.has(candidate.currentLayerId)) {
         issues.push({
