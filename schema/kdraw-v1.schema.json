@@ -48,7 +48,13 @@
         "linetypeId": { "type": "string", "minLength": 1 },
         "lineweightMm": { "type": "number", "minimum": 0 },
         "transparency": { "type": "number", "minimum": 0, "maximum": 90 }
-      }
+      },
+      "allOf": [
+        {
+          "if": { "anyOf": [{ "required": ["aciIndex"] }, { "required": ["colorMethod"] }] },
+          "then": { "required": ["color"] }
+        }
+      ]
     },
     "point": {
       "type": "object",

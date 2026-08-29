@@ -164,6 +164,24 @@ describe("validateKDrawDocumentV1", () => {
     expect(issues).toContainEqual(expect.objectContaining({ path: "$.entities[0].appearance.transparency", code: "INVALID_VALUE" }));
   });
 
+  it("rejects ACI or color-method metadata without the matching render color", () => {
+    const document = fixture();
+    document.entities[0]!.appearance = { aciIndex: 10 };
+    expect(validateKDrawDocumentV1(document).issues).toContainEqual(
+      expect.objectContaining({ path: "$.entities[0].appearance.color", code: "INVALID_VALUE" }),
+    );
+    document.entities[0]!.appearance = { colorMethod: "trueColor" };
+    expect(validateKDrawDocumentV1(document).issues).toContainEqual(
+      expect.objectContaining({ path: "$.entities[0].appearance.color", code: "INVALID_VALUE" }),
+    );
+    expect(publicJsonSchema.$defs.appearance.allOf).toEqual([
+      {
+        if: { anyOf: [{ required: ["aciIndex"] }, { required: ["colorMethod"] }] },
+        then: { required: ["color"] },
+      },
+    ]);
+  });
+
   it("rejects duplicate layout names case-insensitively and duplicate viewport ids", () => {
     const document = fixture();
     document.layouts[0]!.viewports.push({

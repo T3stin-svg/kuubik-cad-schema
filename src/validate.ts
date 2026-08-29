@@ -96,6 +96,9 @@ function validateAppearance(value: unknown, path: string, issues: ValidationIssu
   )) {
     issues.push({ path: `${path}.aciIndex`, code: "INVALID_VALUE", message: "Appearance aciIndex must be an integer from 1 to 255." });
   }
+  if ((value.aciIndex !== undefined || value.colorMethod !== undefined) && value.color === undefined) {
+    issues.push({ path: `${path}.color`, code: "INVALID_VALUE", message: "Appearance color is required with aciIndex or colorMethod." });
+  }
   if (value.linetypeId !== undefined && (typeof value.linetypeId !== "string" || value.linetypeId.length === 0)) {
     issues.push({ path: `${path}.linetypeId`, code: "INVALID_VALUE", message: "Appearance linetypeId must be a non-empty string." });
   }
