@@ -36,6 +36,22 @@ export interface CadLine extends CadEntityBase {
   end: CadPoint2;
 }
 
+/** Half-infinite construction entity starting at basePoint. */
+export interface CadRay extends CadEntityBase {
+  kind: "ray";
+  basePoint: CadPoint2;
+  /** Non-zero direction vector; consumers normalize it for calculations. */
+  direction: CadPoint2;
+}
+
+/** Infinite construction entity passing through basePoint. */
+export interface CadXline extends CadEntityBase {
+  kind: "xline";
+  basePoint: CadPoint2;
+  /** Non-zero direction vector; consumers normalize it for calculations. */
+  direction: CadPoint2;
+}
+
 export interface CadPolylineVertex extends CadPoint2 {
   bulge?: number;
   startWidth?: number;
@@ -135,6 +151,8 @@ export interface CadProxyEntity extends CadEntityBase {
 
 export type CadEntity =
   | CadLine
+  | CadRay
+  | CadXline
   | CadPolyline
   | CadCircle
   | CadArc

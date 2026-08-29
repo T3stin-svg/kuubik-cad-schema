@@ -218,6 +218,25 @@ describe("validateKDrawDocumentV1", () => {
     );
   });
 
+  it("accepts ray/xline entities and rejects missing or zero directions", () => {
+    const document = fixture();
+    document.entities.push(
+      { kind: "ray", handle: "12", layerId: "0", basePoint: { x: 0, y: 0 }, direction: { x: 3, y: 4 } },
+      { kind: "xline", handle: "13", layerId: "0", basePoint: { x: 10, y: 20 }, direction: { x: 0, y: 1 } },
+    );
+    expect(validateKDrawDocumentV1(document)).toEqual({ valid: true, issues: [] });
+    const ray = document.entities[2]!;
+    if (ray.kind !== "ray") throw new Error("Expected ray fixture.");
+    ray.direction = { x: 0, y: 0 };
+    expect(validateKDrawDocumentV1(document).issues).toContainEqual(
+      expect.objectContaining({ path: "$.entities[2].direction", code: "INVALID_VALUE" }),
+    );
+    delete (ray as Partial<typeof ray>).direction;
+    expect(validateKDrawDocumentV1(document).issues).toContainEqual(
+      expect.objectContaining({ path: "$.entities[2].direction", code: "INVALID_VALUE" }),
+    );
+  });
+
   it("requires unsupported entities to use the proxy discriminator", () => {
     const document = fixture() as unknown as Record<string, unknown>;
     (document.entities as unknown[]).push({ kind: "vendorThing", handle: "12", layerId: "0" });

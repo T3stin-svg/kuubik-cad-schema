@@ -171,6 +171,14 @@
             },
             {
               "properties": {
+                "kind": { "enum": ["ray", "xline"] },
+                "basePoint": { "$ref": "#/$defs/point" },
+                "direction": { "$ref": "#/$defs/point" }
+              },
+              "required": ["basePoint", "direction"]
+            },
+            {
+              "properties": {
                 "kind": { "const": "circle" },
                 "center": { "$ref": "#/$defs/point" },
                 "radius": { "type": "number", "exclusiveMinimum": 0 }

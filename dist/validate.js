@@ -1,5 +1,7 @@
 const ENTITY_KINDS = new Set([
     "line",
+    "ray",
+    "xline",
     "polyline",
     "circle",
     "arc",
@@ -111,6 +113,17 @@ function validateEntity(candidate, path, layerIds, blockIds, handles, issues) {
     }
     if (candidate.appearance !== undefined)
         validateAppearance(candidate.appearance, `${path}.appearance`, issues);
+    if (kind === "ray" || kind === "xline") {
+        if (!isRecord(candidate.basePoint) || typeof candidate.basePoint.x !== "number" || typeof candidate.basePoint.y !== "number") {
+            issues.push({ path: `${path}.basePoint`, code: "INVALID_VALUE", message: `${kind} basePoint must be a point.` });
+        }
+        if (!isRecord(candidate.direction) || typeof candidate.direction.x !== "number" || typeof candidate.direction.y !== "number") {
+            issues.push({ path: `${path}.direction`, code: "INVALID_VALUE", message: `${kind} direction must be a point.` });
+        }
+        else if (candidate.direction.x === 0 && candidate.direction.y === 0) {
+            issues.push({ path: `${path}.direction`, code: "INVALID_VALUE", message: `${kind} direction must be non-zero.` });
+        }
+    }
     if (kind === "blockRef") {
         const blockId = candidate.blockId;
         if (typeof blockId !== "string" || !blockIds.has(blockId)) {
