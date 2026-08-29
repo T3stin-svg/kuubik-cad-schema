@@ -152,13 +152,14 @@ describe("validateKDrawDocumentV1", () => {
 
   it("locks appearance transparency to AutoCAD-style percent semantics", () => {
     const document = fixture();
-    document.entities[0]!.appearance = { color: "#f00", colorMethod: "aci", lineweightMm: 0.7, transparency: 40 };
-    document.layers[0]!.appearance = { color: "#00ff00", colorMethod: "trueColor", lineweightMm: 0, transparency: 90 };
+    document.entities[0]!.appearance = { color: "#f00", colorMethod: "aci", aciIndex: 10, lineweightMm: 0.7, transparency: 40 };
+    document.layers[0]!.appearance = { color: "#00ff00", colorMethod: "trueColor", aciIndex: 3, lineweightMm: 0, transparency: 90 };
     expect(validateKDrawDocumentV1(document)).toEqual({ valid: true, issues: [] });
-    document.entities[0]!.appearance = { color: "red", colorMethod: "indexed" as "aci", lineweightMm: -0.1, transparency: 91 };
+    document.entities[0]!.appearance = { color: "red", colorMethod: "indexed" as "aci", aciIndex: 1.5, lineweightMm: -0.1, transparency: 91 };
     const issues = validateKDrawDocumentV1(document).issues;
     expect(issues).toContainEqual(expect.objectContaining({ path: "$.entities[0].appearance.color", code: "INVALID_VALUE" }));
     expect(issues).toContainEqual(expect.objectContaining({ path: "$.entities[0].appearance.colorMethod", code: "INVALID_VALUE" }));
+    expect(issues).toContainEqual(expect.objectContaining({ path: "$.entities[0].appearance.aciIndex", code: "INVALID_VALUE" }));
     expect(issues).toContainEqual(expect.objectContaining({ path: "$.entities[0].appearance.lineweightMm", code: "INVALID_VALUE" }));
     expect(issues).toContainEqual(expect.objectContaining({ path: "$.entities[0].appearance.transparency", code: "INVALID_VALUE" }));
   });

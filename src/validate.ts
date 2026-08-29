@@ -91,6 +91,11 @@ function validateAppearance(value: unknown, path: string, issues: ValidationIssu
   if (value.colorMethod !== undefined && value.colorMethod !== "aci" && value.colorMethod !== "trueColor") {
     issues.push({ path: `${path}.colorMethod`, code: "INVALID_VALUE", message: "Appearance colorMethod must be aci or trueColor." });
   }
+  if (value.aciIndex !== undefined && (
+    typeof value.aciIndex !== "number" || !Number.isInteger(value.aciIndex) || value.aciIndex < 1 || value.aciIndex > 255
+  )) {
+    issues.push({ path: `${path}.aciIndex`, code: "INVALID_VALUE", message: "Appearance aciIndex must be an integer from 1 to 255." });
+  }
   if (value.linetypeId !== undefined && (typeof value.linetypeId !== "string" || value.linetypeId.length === 0)) {
     issues.push({ path: `${path}.linetypeId`, code: "INVALID_VALUE", message: "Appearance linetypeId must be a non-empty string." });
   }

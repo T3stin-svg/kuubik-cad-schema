@@ -44,6 +44,7 @@
       "properties": {
         "color": { "type": "string", "pattern": "^#[0-9A-Fa-f]{3}([0-9A-Fa-f]{3})?$" },
         "colorMethod": { "enum": ["aci", "trueColor"] },
+        "aciIndex": { "type": "integer", "minimum": 1, "maximum": 255 },
         "linetypeId": { "type": "string", "minLength": 1 },
         "lineweightMm": { "type": "number", "minimum": 0 },
         "transparency": { "type": "number", "minimum": 0, "maximum": 90 }

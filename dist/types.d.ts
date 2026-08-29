@@ -13,6 +13,8 @@ export interface CadAppearance {
     color?: string;
     /** ACI colours participate in CTB mapping; TrueColor values bypass stock CTB colour remapping. */
     colorMethod?: "aci" | "trueColor";
+    /** Exact AutoCAD Color Index (1..255), including the fallback index stored beside TrueColor. */
+    aciIndex?: number;
     linetypeId?: string;
     lineweightMm?: number;
     transparency?: number;
