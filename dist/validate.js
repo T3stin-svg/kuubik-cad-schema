@@ -71,12 +71,23 @@ function validateAppearance(value, path, issues) {
     if (value.linetypeId !== undefined && (typeof value.linetypeId !== "string" || value.linetypeId.length === 0)) {
         issues.push({ path: `${path}.linetypeId`, code: "INVALID_VALUE", message: "Appearance linetypeId must be a non-empty string." });
     }
+    if (value.linetypeScale !== undefined && (typeof value.linetypeScale !== "number" || !Number.isFinite(value.linetypeScale) || value.linetypeScale <= 0)) {
+        issues.push({ path: `${path}.linetypeScale`, code: "INVALID_VALUE", message: "Appearance linetypeScale must be finite and greater than zero." });
+    }
     if (value.lineweightMm !== undefined && (typeof value.lineweightMm !== "number" || !Number.isFinite(value.lineweightMm) || value.lineweightMm < 0)) {
         issues.push({ path: `${path}.lineweightMm`, code: "INVALID_VALUE", message: "Appearance lineweightMm must be finite and non-negative." });
     }
     if (value.transparency !== undefined && (typeof value.transparency !== "number" || !Number.isFinite(value.transparency) ||
         value.transparency < 0 || value.transparency > 90)) {
         issues.push({ path: `${path}.transparency`, code: "INVALID_VALUE", message: "Appearance transparency must be a percentage from 0 to 90." });
+    }
+    if (value.thickness !== undefined && (typeof value.thickness !== "number" || !Number.isFinite(value.thickness))) {
+        issues.push({ path: `${path}.thickness`, code: "INVALID_VALUE", message: "Appearance thickness must be finite." });
+    }
+    for (const key of ["plotStyleId", "materialId"]) {
+        if (value[key] !== undefined && (typeof value[key] !== "string" || value[key].length === 0)) {
+            issues.push({ path: `${path}.${key}`, code: "INVALID_VALUE", message: `Appearance ${key} must be a non-empty string.` });
+        }
     }
 }
 function validateEntity(candidate, path, layerIds, blockIds, handles, issues) {

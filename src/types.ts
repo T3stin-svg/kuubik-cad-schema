@@ -19,8 +19,16 @@ export interface CadAppearance {
   /** Exact AutoCAD Color Index (1..255), including the fallback index stored beside TrueColor. */
   aciIndex?: number;
   linetypeId?: string;
+  /** Per-entity linetype pattern scale. AutoCAD requires a positive value. */
+  linetypeScale?: number;
   lineweightMm?: number;
   transparency?: number;
+  /** Signed 2D extrusion thickness in drawing units. */
+  thickness?: number;
+  /** Named plot-style identifier when the document uses STB semantics. */
+  plotStyleId?: string;
+  /** Optional material identifier; retained for MATCHPROP fidelity even in a 2D document. */
+  materialId?: string;
 }
 
 export interface CadEntityBase {

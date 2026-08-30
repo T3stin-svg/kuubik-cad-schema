@@ -46,8 +46,12 @@
         "colorMethod": { "enum": ["aci", "trueColor"] },
         "aciIndex": { "type": "integer", "minimum": 1, "maximum": 255 },
         "linetypeId": { "type": "string", "minLength": 1 },
+        "linetypeScale": { "type": "number", "exclusiveMinimum": 0 },
         "lineweightMm": { "type": "number", "minimum": 0 },
-        "transparency": { "type": "number", "minimum": 0, "maximum": 90 }
+        "transparency": { "type": "number", "minimum": 0, "maximum": 90 },
+        "thickness": { "$ref": "#/$defs/finiteNumber" },
+        "plotStyleId": { "type": "string", "minLength": 1 },
+        "materialId": { "type": "string", "minLength": 1 }
       },
       "allOf": [
         {

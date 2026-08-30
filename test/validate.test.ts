@@ -152,16 +152,20 @@ describe("validateKDrawDocumentV1", () => {
 
   it("locks appearance transparency to AutoCAD-style percent semantics", () => {
     const document = fixture();
-    document.entities[0]!.appearance = { color: "#f00", colorMethod: "aci", aciIndex: 10, lineweightMm: 0.7, transparency: 40 };
-    document.layers[0]!.appearance = { color: "#00ff00", colorMethod: "trueColor", aciIndex: 3, lineweightMm: 0, transparency: 90 };
+    document.entities[0]!.appearance = { color: "#f00", colorMethod: "aci", aciIndex: 10, linetypeScale: 2, lineweightMm: 0.7, transparency: 40, thickness: -3, plotStyleId: "Engineering", materialId: "Steel" };
+    document.layers[0]!.appearance = { color: "#00ff00", colorMethod: "trueColor", aciIndex: 3, linetypeScale: 0.5, lineweightMm: 0, transparency: 90, thickness: 0 };
     expect(validateKDrawDocumentV1(document)).toEqual({ valid: true, issues: [] });
-    document.entities[0]!.appearance = { color: "red", colorMethod: "indexed" as "aci", aciIndex: 1.5, lineweightMm: -0.1, transparency: 91 };
+    document.entities[0]!.appearance = { color: "red", colorMethod: "indexed" as "aci", aciIndex: 1.5, linetypeScale: 0, lineweightMm: -0.1, transparency: 91, thickness: Number.NaN, plotStyleId: "", materialId: "" };
     const issues = validateKDrawDocumentV1(document).issues;
     expect(issues).toContainEqual(expect.objectContaining({ path: "$.entities[0].appearance.color", code: "INVALID_VALUE" }));
     expect(issues).toContainEqual(expect.objectContaining({ path: "$.entities[0].appearance.colorMethod", code: "INVALID_VALUE" }));
     expect(issues).toContainEqual(expect.objectContaining({ path: "$.entities[0].appearance.aciIndex", code: "INVALID_VALUE" }));
+    expect(issues).toContainEqual(expect.objectContaining({ path: "$.entities[0].appearance.linetypeScale", code: "INVALID_VALUE" }));
     expect(issues).toContainEqual(expect.objectContaining({ path: "$.entities[0].appearance.lineweightMm", code: "INVALID_VALUE" }));
     expect(issues).toContainEqual(expect.objectContaining({ path: "$.entities[0].appearance.transparency", code: "INVALID_VALUE" }));
+    expect(issues).toContainEqual(expect.objectContaining({ path: "$.entities[0].appearance.thickness", code: "INVALID_VALUE" }));
+    expect(issues).toContainEqual(expect.objectContaining({ path: "$.entities[0].appearance.plotStyleId", code: "INVALID_VALUE" }));
+    expect(issues).toContainEqual(expect.objectContaining({ path: "$.entities[0].appearance.materialId", code: "INVALID_VALUE" }));
   });
 
   it("rejects ACI or color-method metadata without the matching render color", () => {
