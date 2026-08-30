@@ -204,6 +204,46 @@ describe("validateKDrawDocumentV1", () => {
     expect(issues).toContainEqual(expect.objectContaining({ path: "$.layouts[1].viewports[0].id", code: "DUPLICATE_ID" }));
   });
 
+  it("preserves the MATCHPROP viewport-special state in the public contract", () => {
+    const document = fixture();
+    document.layouts.push({
+      id: "layout-1",
+      name: "Layout 1",
+      kind: "paper",
+      viewports: [{
+        id: "viewport-1",
+        center: { x: 100, y: 80 },
+        width: 160,
+        height: 100,
+        viewCenter: { x: 500, y: 250 },
+        viewHeight: 5_000,
+        twistAngleRad: 0,
+        locked: true,
+        on: false,
+        shadePlot: "wireframe",
+        snapEnabled: true,
+        gridEnabled: false,
+        ucsIconVisible: true,
+        ucsIconAtOrigin: false,
+      }],
+    });
+    expect(validateKDrawDocumentV1(document)).toEqual({ valid: true, issues: [] });
+    expect(publicJsonSchema.$defs.viewport.properties).toMatchObject({
+      on: { type: "boolean" },
+      shadePlot: { enum: ["as-displayed", "wireframe", "hidden", "rendered"] },
+      snapEnabled: { type: "boolean" },
+      gridEnabled: { type: "boolean" },
+      ucsIconVisible: { type: "boolean" },
+      ucsIconAtOrigin: { type: "boolean" },
+    });
+
+    document.layouts[1]!.viewports[0]!.shadePlot = "conceptual" as "wireframe";
+    document.layouts[1]!.viewports[0]!.gridEnabled = "yes" as unknown as boolean;
+    const issues = validateKDrawDocumentV1(document).issues;
+    expect(issues).toContainEqual(expect.objectContaining({ path: "$.layouts[1].viewports[0].shadePlot", code: "INVALID_VALUE" }));
+    expect(issues).toContainEqual(expect.objectContaining({ path: "$.layouts[1].viewports[0].gridEnabled", code: "INVALID_VALUE" }));
+  });
+
   it("rejects missing layer references", () => {
     const document = fixture();
     document.entities[0]!.layerId = "missing";

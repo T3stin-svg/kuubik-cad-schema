@@ -235,14 +235,31 @@ export function validateKDrawDocumentV1(candidate) {
         }
         else {
             layout.viewports.forEach((viewport, viewportIndex) => {
+                const viewportPath = `${path}.viewports[${viewportIndex}]`;
                 if (!isRecord(viewport) || typeof viewport.id !== "string" || viewport.id.length === 0) {
-                    issues.push({ path: `${path}.viewports[${viewportIndex}].id`, code: "INVALID_VALUE", message: "Viewport id is required." });
+                    issues.push({ path: `${viewportPath}.id`, code: "INVALID_VALUE", message: "Viewport id is required." });
                     return;
                 }
                 if (viewportIds.has(viewport.id)) {
-                    issues.push({ path: `${path}.viewports[${viewportIndex}].id`, code: "DUPLICATE_ID", message: `Duplicate viewport id: ${viewport.id}` });
+                    issues.push({ path: `${viewportPath}.id`, code: "DUPLICATE_ID", message: `Duplicate viewport id: ${viewport.id}` });
                 }
                 viewportIds.add(viewport.id);
+                for (const key of ["width", "height", "viewHeight"]) {
+                    if (typeof viewport[key] !== "number" || !Number.isFinite(viewport[key]) || viewport[key] <= 0) {
+                        issues.push({ path: `${viewportPath}.${key}`, code: "INVALID_VALUE", message: `Viewport ${key} must be greater than zero.` });
+                    }
+                }
+                if (typeof viewport.locked !== "boolean") {
+                    issues.push({ path: `${viewportPath}.locked`, code: "INVALID_VALUE", message: "Viewport locked must be boolean." });
+                }
+                for (const key of ["on", "snapEnabled", "gridEnabled", "ucsIconVisible", "ucsIconAtOrigin"]) {
+                    if (viewport[key] !== undefined && typeof viewport[key] !== "boolean") {
+                        issues.push({ path: `${viewportPath}.${key}`, code: "INVALID_VALUE", message: `Viewport ${key} must be boolean.` });
+                    }
+                }
+                if (viewport.shadePlot !== undefined && !["as-displayed", "wireframe", "hidden", "rendered"].includes(String(viewport.shadePlot))) {
+                    issues.push({ path: `${viewportPath}.shadePlot`, code: "INVALID_VALUE", message: "Viewport shadePlot is invalid." });
+                }
             });
         }
         if (layout.pageSetup !== undefined) {

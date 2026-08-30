@@ -226,6 +226,14 @@ export interface CadViewport {
   viewHeight: number;
   twistAngleRad: number;
   locked: boolean;
+  /** AutoCAD paper-space viewport display switch. Omitted v1 data means on. */
+  on?: boolean;
+  /** 2D-safe subset of AutoCAD's Shade Plot viewport property. */
+  shadePlot?: "as-displayed" | "wireframe" | "hidden" | "rendered";
+  snapEnabled?: boolean;
+  gridEnabled?: boolean;
+  ucsIconVisible?: boolean;
+  ucsIconAtOrigin?: boolean;
   clipBoundary?: CadPoint2[];
   layerOverrides?: Record<string, CadAppearance & { frozen?: boolean }>;
 }
