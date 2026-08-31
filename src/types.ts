@@ -98,10 +98,22 @@ export interface CadEllipse extends CadEntityBase {
 
 export interface CadSpline extends CadEntityBase {
   kind: "spline";
+  /**
+   * How the user-authored curve is defined. Older schemaVersion 1 documents
+   * omit this field and are interpreted as control-vertex splines.
+   */
+  definitionMethod?: "control-vertices" | "fit-points";
   degree: number;
+  /** Evaluated NURBS representation used by rendering and geometry kernels. */
   controlPoints: CadPoint2[];
   knots: number[];
   weights?: number[];
+  /** Original fit data retained for SPLINE/SPLINEDIT and native DXF round-trips. */
+  fitPoints?: CadPoint2[];
+  fitTolerance?: number;
+  startTangent?: CadPoint2;
+  endTangent?: CadPoint2;
+  knotParameterization?: "chord" | "sqrt-chord" | "uniform";
   closed: boolean;
   periodic: boolean;
 }

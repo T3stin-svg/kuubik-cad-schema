@@ -13,6 +13,14 @@ Põhireeglid:
 - üks `CadOperation` kirjeldab üht atomaarset undo-sammu;
 - oracle-raport ei ole sertifitseeriv autoriteet.
 
+`CadSpline` preserves both representations needed by AutoCAD-compatible 2D
+workflows. `definitionMethod` is optional so existing schema-version 1 files
+remain valid and defaults to `control-vertices`. A `fit-points` spline retains
+its original fit points, tolerance, optional endpoint tangents and knot
+parameterization in addition to the evaluated control-point/knot form used by
+renderers and geometry kernels. This metadata is document data; it does not
+make AutoCAD, LibreCAD or FreeCAD a runtime dependency.
+
 ```bash
 npm install
 npm run check

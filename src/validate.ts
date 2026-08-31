@@ -128,6 +128,72 @@ function validateAppearance(value: unknown, path: string, issues: ValidationIssu
   }
 }
 
+function isPoint(value: unknown): value is { x: number; y: number } {
+  return isRecord(value) && typeof value.x === "number" && typeof value.y === "number";
+}
+
+function validateSpline(candidate: Record<string, unknown>, path: string, issues: ValidationIssue[]): void {
+  const degree = candidate.degree;
+  const controlPoints = candidate.controlPoints;
+  const knots = candidate.knots;
+  const weights = candidate.weights;
+  const definitionMethod = candidate.definitionMethod ?? "control-vertices";
+  if (!Number.isInteger(degree) || (degree as number) < 1 || (degree as number) > 10) {
+    issues.push({ path: `${path}.degree`, code: "INVALID_VALUE", message: "Spline degree must be an integer from 1 to 10." });
+  }
+  if (!Array.isArray(controlPoints) || controlPoints.length <= (typeof degree === "number" ? degree : 0) || controlPoints.some((point) => !isPoint(point))) {
+    issues.push({ path: `${path}.controlPoints`, code: "INVALID_VALUE", message: "Spline controlPoints must contain more points than the degree." });
+  }
+  if (!Array.isArray(knots) || !Array.isArray(controlPoints) || typeof degree !== "number" || knots.length !== controlPoints.length + degree + 1
+    || knots.some((knot, index) => typeof knot !== "number" || (index > 0 && knot < (knots[index - 1] as number)))) {
+    issues.push({ path: `${path}.knots`, code: "INVALID_VALUE", message: "Spline knots must be sorted and match controlPoints + degree + 1." });
+  } else if (!((knots[controlPoints.length] as number) > (knots[degree] as number))) {
+    issues.push({ path: `${path}.knots`, code: "INVALID_VALUE", message: "Spline knot domain must be non-empty." });
+  }
+  if (weights !== undefined && (!Array.isArray(weights) || !Array.isArray(controlPoints) || weights.length !== controlPoints.length
+    || weights.some((weight) => typeof weight !== "number" || !(weight > 0)))) {
+    issues.push({ path: `${path}.weights`, code: "INVALID_VALUE", message: "Spline weights must be positive and match controlPoints." });
+  }
+  if (definitionMethod !== "control-vertices" && definitionMethod !== "fit-points") {
+    issues.push({ path: `${path}.definitionMethod`, code: "INVALID_VALUE", message: "Spline definitionMethod must be control-vertices or fit-points." });
+  }
+  if (typeof candidate.closed !== "boolean") {
+    issues.push({ path: `${path}.closed`, code: "INVALID_VALUE", message: "Spline closed must be boolean." });
+  }
+  if (typeof candidate.periodic !== "boolean") {
+    issues.push({ path: `${path}.periodic`, code: "INVALID_VALUE", message: "Spline periodic must be boolean." });
+  }
+  const fitPoints = candidate.fitPoints;
+  if (definitionMethod === "fit-points") {
+    if (!Array.isArray(fitPoints) || fitPoints.length < 3 || fitPoints.some((point) => !isPoint(point))) {
+      issues.push({ path: `${path}.fitPoints`, code: "INVALID_VALUE", message: "Fit-point splines require at least three fitPoints." });
+    }
+    if (degree !== 3) {
+      issues.push({ path: `${path}.degree`, code: "INVALID_VALUE", message: "AutoCAD-compatible fit-point splines must have degree 3." });
+    }
+  } else if (fitPoints !== undefined) {
+    issues.push({ path: `${path}.fitPoints`, code: "INVALID_VALUE", message: "fitPoints require definitionMethod=fit-points." });
+  }
+  if (candidate.fitTolerance !== undefined && (typeof candidate.fitTolerance !== "number" || candidate.fitTolerance < 0)) {
+    issues.push({ path: `${path}.fitTolerance`, code: "INVALID_VALUE", message: "Spline fitTolerance must be non-negative." });
+  }
+  for (const tangent of ["startTangent", "endTangent"] as const) {
+    const value = candidate[tangent];
+    if (value !== undefined && (!isPoint(value) || (value.x === 0 && value.y === 0))) {
+      issues.push({ path: `${path}.${tangent}`, code: "INVALID_VALUE", message: `Spline ${tangent} must be a non-zero vector.` });
+    }
+  }
+  const parameterization = candidate.knotParameterization;
+  if (parameterization !== undefined && !["chord", "sqrt-chord", "uniform"].includes(parameterization as string)) {
+    issues.push({ path: `${path}.knotParameterization`, code: "INVALID_VALUE", message: "Spline knotParameterization must be chord, sqrt-chord or uniform." });
+  }
+  if (definitionMethod !== "fit-points" && (
+    candidate.fitTolerance !== undefined || candidate.startTangent !== undefined || candidate.endTangent !== undefined || parameterization !== undefined
+  )) {
+    issues.push({ path, code: "INVALID_VALUE", message: "Fit metadata requires definitionMethod=fit-points." });
+  }
+}
+
 function validateEntity(
   candidate: unknown,
   path: string,
@@ -192,6 +258,8 @@ function validateEntity(
       });
     }
   }
+
+  if (kind === "spline") validateSpline(candidate, path, issues);
 
   if (kind === "proxy" && typeof candidate.originalType !== "string") {
     issues.push({

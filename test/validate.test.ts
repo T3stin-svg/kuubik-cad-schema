@@ -7,7 +7,7 @@ import {
 } from "../src/index.js";
 
 const publicJsonSchema = JSON.parse(readFileSync(new URL("../schema/kdraw-v1.schema.json", import.meta.url), "utf8")) as {
-  $defs: { pageSetup: { properties: Record<string, unknown> } };
+  $defs: { pageSetup: { properties: Record<string, unknown> }; entity: { allOf: Array<{ oneOf?: Array<{ properties?: Record<string, { const?: string }> }> }> } };
 };
 
 function fixture(): KDrawDocumentV1 {
@@ -279,6 +279,59 @@ describe("validateKDrawDocumentV1", () => {
     expect(validateKDrawDocumentV1(document).issues).toContainEqual(
       expect.objectContaining({ path: "$.entities[2].direction", code: "INVALID_VALUE" }),
     );
+  });
+
+  it("preserves validated AutoCAD-compatible control and fit spline contracts", () => {
+    const document = fixture();
+    document.entities.push(
+      {
+        kind: "spline", handle: "20", layerId: "0", definitionMethod: "control-vertices", degree: 2,
+        controlPoints: [{ x: 0, y: 0 }, { x: 50, y: 100 }, { x: 100, y: 0 }],
+        knots: [0, 0, 0, 1, 1, 1], weights: [1, 0.75, 1], closed: false, periodic: false,
+      },
+      {
+        kind: "spline", handle: "21", layerId: "0", definitionMethod: "fit-points", degree: 3,
+        fitPoints: [{ x: 0, y: 200 }, { x: 50, y: 300 }, { x: 100, y: 200 }],
+        fitTolerance: 1e-7, startTangent: { x: 50, y: 100 }, endTangent: { x: 50, y: -100 },
+        knotParameterization: "sqrt-chord",
+        controlPoints: [{ x: 0, y: 200 }, { x: 20, y: 240 }, { x: 80, y: 240 }, { x: 100, y: 200 }],
+        knots: [0, 0, 0, 0, 1, 1, 1, 1], closed: false, periodic: false,
+      },
+    );
+    expect(validateKDrawDocumentV1(document)).toEqual({ valid: true, issues: [] });
+    const splineBranch = publicJsonSchema.$defs.entity.allOf.flatMap((part) => part.oneOf ?? [])
+      .find((part) => part.properties?.kind?.const === "spline");
+    expect(splineBranch?.properties).toMatchObject({
+      definitionMethod: { enum: ["control-vertices", "fit-points"] },
+      knotParameterization: { enum: ["chord", "sqrt-chord", "uniform"] },
+    });
+  });
+
+  it("keeps legacy schema-version 1 splines as control-vertex definitions", () => {
+    const document = fixture();
+    document.entities.push({
+      kind: "spline", handle: "20", layerId: "0", degree: 2,
+      controlPoints: [{ x: 0, y: 0 }, { x: 50, y: 100 }, { x: 100, y: 0 }],
+      knots: [0, 0, 0, 1, 1, 1], closed: false, periodic: false,
+    });
+    expect(validateKDrawDocumentV1(document)).toEqual({ valid: true, issues: [] });
+  });
+
+  it("rejects inconsistent fit spline topology and metadata", () => {
+    const document = fixture();
+    document.entities.push({
+      kind: "spline", handle: "20", layerId: "0", definitionMethod: "fit-points", degree: 2,
+      fitPoints: [{ x: 0, y: 0 }, { x: 100, y: 0 }], fitTolerance: -1,
+      startTangent: { x: 0, y: 0 }, knotParameterization: "unknown" as "chord",
+      controlPoints: [{ x: 0, y: 0 }, { x: 50, y: 100 }, { x: 100, y: 0 }],
+      knots: [0, 0, 1], weights: [1, -1], closed: "no" as unknown as boolean, periodic: false,
+    });
+    const paths = validateKDrawDocumentV1(document).issues.map((issue) => issue.path);
+    expect(paths).toEqual(expect.arrayContaining([
+      "$.entities[2].degree", "$.entities[2].fitPoints", "$.entities[2].fitTolerance",
+      "$.entities[2].startTangent", "$.entities[2].knotParameterization", "$.entities[2].knots",
+      "$.entities[2].weights", "$.entities[2].closed",
+    ]));
   });
 
   it("requires unsupported entities to use the proxy discriminator", () => {

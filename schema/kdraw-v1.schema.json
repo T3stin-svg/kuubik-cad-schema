@@ -240,8 +240,32 @@
             },
             {
               "properties": {
+                "kind": { "const": "spline" },
+                "definitionMethod": { "enum": ["control-vertices", "fit-points"] },
+                "degree": { "type": "integer", "minimum": 1, "maximum": 10 },
+                "controlPoints": { "type": "array", "minItems": 2, "items": { "$ref": "#/$defs/point" } },
+                "knots": { "type": "array", "minItems": 4, "items": { "$ref": "#/$defs/finiteNumber" } },
+                "weights": { "type": "array", "minItems": 2, "items": { "type": "number", "exclusiveMinimum": 0 } },
+                "fitPoints": { "type": "array", "minItems": 3, "items": { "$ref": "#/$defs/point" } },
+                "fitTolerance": { "type": "number", "minimum": 0 },
+                "startTangent": { "$ref": "#/$defs/point" },
+                "endTangent": { "$ref": "#/$defs/point" },
+                "knotParameterization": { "enum": ["chord", "sqrt-chord", "uniform"] },
+                "closed": { "type": "boolean" },
+                "periodic": { "type": "boolean" }
+              },
+              "required": ["degree", "controlPoints", "knots", "closed", "periodic"],
+              "allOf": [
+                {
+                  "if": { "properties": { "definitionMethod": { "const": "fit-points" } }, "required": ["definitionMethod"] },
+                  "then": { "required": ["fitPoints"] }
+                }
+              ]
+            },
+            {
+              "properties": {
                 "kind": {
-                  "enum": ["polyline", "arc", "ellipse", "spline", "text", "mtext", "leader", "dimension", "hatch", "blockRef"]
+                  "enum": ["polyline", "arc", "ellipse", "text", "mtext", "leader", "dimension", "hatch", "blockRef"]
                 }
               }
             },
